@@ -1,0 +1,10 @@
+workflow is as follows:
+
+data must be created in the Illustris1, sersic_blobs, TNG_cutouts and Empty_fields folders. The data folder also contains the script to create SDSS data (to be fixed for consistency). 
+
+The source code for PixelCNN is in ./src
+
+The processing (forward pass through the networks) is in ./processing
+
+After running the processing it is necessary to run 
+./analysis/likelihood_distribs.py to get the likelihood distributions. This file also creates the DataFrames (stored in ./data/DataFrames_LLR/) necessary to run the notebook ./analysis/get_maps.ipynb, which creates maps of the quantities of interest for the various models.
