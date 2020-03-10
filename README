@@ -4,7 +4,8 @@ data must be created in the Illustris1, sersic_blobs, TNG_cutouts and Empty_fiel
 
 The source code for PixelCNN is in ./src
 
-The processing (forward pass through the networks) is in ./processing
+The processing (forward pass through the networks) is in ./processing . 
+The dataframes for the processing can be retrieved from get_dataframes_LLR.py in this folder.
 
 After running the processing it is necessary to run 
-./analysis/likelihood_distribs.py to get the likelihood distributions. This file also creates the DataFrames (stored in ./data/DataFrames_LLR/) necessary to run the notebook ./analysis/get_maps.ipynb, which creates maps of the quantities of interest for the various models.
+./analysis/likelihood_distribs.py to get the likelihood distributions.
