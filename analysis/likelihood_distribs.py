@@ -2,115 +2,178 @@ import numpy as np
 import matplotlib.pylab as plt
 import matplotlib as mpl
 from scipy.integrate import cumtrapz
+import seaborn as sns
+plt.style.use('seaborn')
+mpl.use('agg')
 import pandas as pd
 mpl.rcParams['font.size']=45
 #mpl.rcParams['xtick.minor.visible']=True
-mpl.rcParams['axes.linewidth']= 3.
-mpl.rcParams['axes.titlepad'] = 20
-plt.rcParams['axes.linewidth']=5
-plt.rcParams['xtick.major.size'] =15
-plt.rcParams['ytick.major.size'] =15
-plt.rcParams['xtick.minor.size'] =10
-plt.rcParams['ytick.minor.size'] =10
-plt.rcParams['xtick.major.width'] =5
-plt.rcParams['ytick.major.width'] =5
-plt.rcParams['xtick.minor.width'] =5
-plt.rcParams['ytick.minor.width'] =5
+
+#pl.rcParams['axes.linewidth']= 3.
+#mpl.rcParams['axes.titlepad'] = 20
+#plt.rcParams['xtick.major.size'] =15
+#plt.rcParams['ytick.major.size'] =15
+#plt.rcParams['xtick.minor.size'] =10
+#plt.rcParams['ytick.minor.size'] =10
+#plt.rcParams['xtick.major.width'] =5
+#plt.rcParams['ytick.major.width'] =5
+#plt.rcParams['xtick.minor.width'] =5
+#plt.rcParams['ytick.minor.width'] =5
 mpl.rcParams['axes.titlepad'] = 20 
 plt.rcParams['figure.figsize']=(16,12)
 
+SDSS = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/SDSS_Rot_blobsLike_0.03_0.055.csv')
+#SDSS_newsky = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/SDSS_newsky_Rot_blobsLike__0.03_0.055.csv')
 
-SDSS_orig = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/SDSS_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test.csv')
-TNG_orig = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/TNG_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test.csv')
-Illustris_orig = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/Illustris_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test.csv')
-#noise_orig = pd.read_csv('noisetest_df_likelihood_asinh_Mgt10_3resnets_rightOrder_800ksteps.csv',
-#                        delim_whitespace=True)
-blobs_orig = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/blobs_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test.csv')
-sky_orig = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/sky_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test.csv')
-sky_orig_norot = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/sky_df_likelihood_asinh_SDSS_blobsLike_1Msteps_test_noRot.csv')
+#SDSS_train = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/SDSS_Rot_blobsLike_train__0.03_0.055.csv')
+Illustris = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/Illustris_Rot_blobsLike_orig_0.03_0.055.csv')
 
+TNG = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/TNG_Rot_blobsLike_orig_0.03_0.055.csv')
+TNG50 = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/TNG50_Rot_blobsLike_orig_0.03_0.055.csv')
 
-SDSS_shuffled = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/SDSS_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test.csv')
-TNG_shuffled = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/TNG_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test.csv')
-Illustris_shuffled = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/Illustris_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test.csv')
-#noise_shuffled = pd.read_csv('noisetest_df_likelihood_asinh_SersicBlobs_SerOnly_1Msteps.csv'#,
-#                            delim_whitespace=True)
-blobs_shuffled = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/blobs_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test.csv')
-sky_shuffled = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/sky_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test.csv')
-sky_shuffled_norot = pd.read_csv('/scratch/lzanisi/pixel-cnn/outputs/test_double_model/sky_df_likelihood_asinh_NewSersicBlobs_SerOnly_1Msteps_test_noRot.csv')
-
-
-SDSS = pd.merge(SDSS_orig, SDSS_shuffled, on='galcount', suffixes=('','_shuffled'))
-TNG = pd.merge(TNG_orig, TNG_shuffled, on='objid', suffixes=('','_shuffled'))
-Illustris = pd.merge(Illustris_orig, Illustris_shuffled, on='objid', suffixes=('','_shuffled'))
-blobs = pd.merge(blobs_orig, blobs_shuffled, on='objid', suffixes=('','_shuffled'))
-sky = pd.merge(sky_orig, sky_shuffled, on='objid', suffixes=('','_shuffled'))
-sky_norot = pd.merge(sky_orig_norot, sky_shuffled_norot, on='objid', suffixes=('','_shuffled'))
-
-SDSS['LLR'] = SDSS['likelihood'] - SDSS['likelihood_shuffled']
-TNG['LLR'] = TNG['likelihood'] - TNG['likelihood_shuffled']
-Illustris['LLR'] = Illustris['likelihood'] - Illustris['likelihood_shuffled']
-#noise['LLR'] = noise['likelihood'] - noise['likelihood_shuffled']
-blobs['LLR'] = blobs['likelihood_shuffled']-blobs['likelihood']
-sky['LLR'] = sky['likelihood_shuffled']-sky['likelihood']
-sky_norot['LLR'] = sky_norot['likelihood_shuffled']-sky_norot['likelihood']
+print(TNG50.shape)
+blobs = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/blobs_Rot_blobsLike_0.03_0.055.csv')
+#blobs_train = pd.read_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/blobs_Rot_blobsLike_train.csv')
 
 
 
-SDSS.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/SDSS_Rot_blobsLike.csv', index=False)
-TNG.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/TNG_Rot_blobsLike.csv', index=False)
-Illustris.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/Illustris_Rot_blobsLike.csv', index=False)
-blobs.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/blobs_Rot_blobsLike.csv', index=False)
-sky.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/sky_Rot_blobsLike.csv', index=False)
-sky_norot.to_csv('/scratch/lzanisi/pixel-cnn/data/DataFrames_LLR/sky_noRot_blobsLike.csv', index=False)
+#SDSS = SDSS.query('z>0.04 & z<0.05')
+print('bootstrap')
+Nboot = 1000
+n = len(TNG50)
+mean = []
+up = []
+low = []
+LLR_SDSS = []
+bins = np.arange(-100,1000,10)
+for i in range(Nboot):
+    sample = SDSS.sample(n)['LLR']
+    LLR_SDSS.append(np.histogram(sample, bins=bins, density=True)[0])
+    
+print('bbotstrap done')
+'''
+fig,ax = plt.subplots(1,1)
+bins = np.arange(-100,1000,10)
 
+sns.distplot(SDSS['LLR'].values, bins=bins, ax=ax, kde=False)
+
+
+#ax.grid(which='both',axis='both',linewidth=3, color='darkgray')
+SDSS['LLR'].hist(SDSS['LLR'].values, bins=bins,ax=ax, histtype='step', label='SDSS', color='darkorange', lw=7, density=True)
+TNG['LLR'].hist(bins=bins,ax=ax, histtype='step', label='TNG', color='teal', lw=7, ls='--', density=True)
+Illustris['LLR'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=7, ls=':', density=True)
+blobs['LLR'].hist(bins=bins,ax=ax, color='limegreen',lw=7, label='sersic', normed=True, histtype='step', ls=':')
+#sky['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=7, ls='-.', density=True)
+#sky_norot['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
+#plt.legend(fontsize=30, frameon=False)
+#plt.ylim(0,0.01)
+
+plt.xlabel('LLR',fontsize=55)
+plt.ylabel('density', fontsize=55)
+plt.xlim(-100,420)
+plt.tight_layout()
+plt.savefig('./results/likelihood_plots/LLR.pdf')
+plt.close()
+
+
+
+'''
 
 fig,ax = plt.subplots(1,1)
 bins = np.arange(-100,1000,10)
-SDSS['LLR'].hist(bins=bins,ax=ax, histtype='step', label='SDSS', color='darkorange', lw=5, density=True)
-TNG['LLR'].hist(bins=bins,ax=ax, histtype='step', label='TNG', color='teal', lw=5, ls='--', density=True)
-Illustris['LLR'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=5, ls=':', density=True)
-blobs['LLR'].hist(bins=bins,ax=ax, color='limegreen',lw=2, label='blobs', normed=True, histtype='step')
-sky['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=5, ls='-.', density=True)
-sky_norot['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
-plt.legend(fontsize=25, frameon=False)
-#plt.ylim(0,0.01)
-plt.xlabel('LLR')
-plt.ylabel('#')
+#ax.grid(which='both',axis='both',linewidth=3, color='darkgray')
+
+
+SDSS['LLR'].hist(bins=bins,ax=ax, histtype='step', label='SDSS (real)', color='darkorange', lw=7, density=True)
+
+#low, med, up = np.percentile(np.array(LLR_SDSS).T, [0.15,50,99.85], axis=1)
+#ax.plot(bins[1:],med, label='SDSS', color='darkorange', lw=7)
+#ax.fill_between(bins[1:], up,low, color='moccasin', alpha=0.8)
+
+TNG['LLR'].hist(bins=bins,ax=ax, histtype='step', label='TNG (simulated)', color='teal', lw=7, ls='--', density=True)
+#TNG50['LLR'].hist(bins=bins,ax=ax, histtype='step', label='TNG50', color='magenta', lw=7, ls='--', density=True)
+
+Illustris['LLR'].hist(bins=bins,ax=ax, histtype='step', label='Illustris (simulated)', color='firebrick', lw=7, ls=':', density=True)
+#blobs['LLR_real'] = blobs['LLR'].apply(lambda)
+#blobs['LLR'].apply(lambda x: -x).hist(bins=bins,ax=ax, color='limegreen',lw=7, label='Archetypes', normed=True, histtype='step', ls='-.')
+#SDSS_train['LLR'].hist(bins=bins,ax=ax, histtype='step', label='SDSS - train', color='black', lw=3, density=True)
+#sky['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=7, ls='-.', density=True)
+#sky_norot['LLR'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
+#plt.legend(fontsize=30, frameon=False)
+plt.legend(fontsize=45, frameon=False, loc='upper right')
+
+plt.ylim(0,0.017)
+plt.tick_params(labelsize=45)
+plt.xlabel('LLR',fontsize=55)
+plt.ylabel('density', fontsize=65)
 plt.xlim(-100,420)
 plt.tight_layout()
-plt.savefig('./results/likelihood_plots/LLR.png')
+plt.savefig('./results/likelihood_plots/tests/LLR_withTNG50_0.03_0.055_ICLRtalk_Illustris.png')
+
+
 plt.close()
 
 fig,ax = plt.subplots(1,1)
-bins = np.arange(3000,4500,10)
-SDSS['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS', color='darkorange', lw=5, density=True)
-TNG['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='TNG', color='teal', lw=5, ls='--', density=True)
-Illustris['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=5, ls=':', density=True)
-blobs['likelihood'].hist( bins=bins, ax=ax, color='limegreen', lw=2,label='blobs', histtype='step', normed=True)
-sky['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=5, ls='-.', density=True)
-sky_norot['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
-plt.legend(fontsize=20, frameon=False, loc='upper left')
+#ax.grid(which='both',axis='both',linewidth=3, color='darkgray')
+bins = np.arange(3000,4500,50)
+#SDSS_train['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS -train', color='black', lw=7, density=True)
+
+SDSS['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS (real)', color='darkorange', lw=7, density=True)
+
+TNG['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='TNG (simulated)', color='teal', lw=7, ls='--', density=True)
+
+#TNG50['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='TNG50', color='magenta', lw=7, ls='--', density=True)
+#Illustris['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=7, ls=':', density=True)
+#blobs['likelihood'].hist( bins=bins, ax=ax, color='limegreen', lw=7,label='sersic', histtype='step', normed=True, ls='-.')
+#SDSS_train['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS - train', color='black', lw=3, density=True)
+
+#sky['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=7, ls='-.', density=True)
+#sky_norot['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
+plt.legend(fontsize=45, frameon=False, loc='upper left')
+
 plt.ylim(0,0.005)
-plt.xlabel('likelihood - baseline model')
-plt.ylabel('#')
+plt.tick_params(labelsize=45)
+plt.xlabel(r'$log \ likelihood$',fontsize=65)
+plt.ylabel('density', fontsize=55)
 plt.tight_layout()
-plt.savefig('./results/likelihood_plots/likelihood_original.png')
+plt.savefig('./results/likelihood_plots/tests/likelihood_original_withTNG50_newflux_0.03_0.055_ICLRtalk.png')
 plt.close()
 
+
+# fig,ax = plt.subplots(1,1)
+# bins = np.arange(3000,4500,50)
+
+# SDSS['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS -test', color='darkorange', lw=7, density=True)
+# SDSS_train['likelihood'].hist(bins=bins,ax=ax, histtype='step', label='SDSS - train', color='black', lw=3, density=True)
+# plt.legend(fontsize=45, frameon=False, loc='upper left')
+# plt.ylim(0,0.005)
+# plt.tick_params(labelsize=45)
+# plt.xlabel(r'$log \ p_{\theta_{SDSS}}$',fontsize=65)
+# plt.ylabel('density', fontsize=55)
+# plt.tight_layout()
+# plt.savefig('./results/likelihood_plots/likelihood_traintest.pdf')
+# plt.close()
+
 fig,ax = plt.subplots(1,1)
-bins = np.arange(3000,4500,10)
-SDSS['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='SDSS', color='darkorange', lw=5, density=True)
-TNG['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='TNG', color='teal', lw=5, ls='--', density=True)
-Illustris['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=5, ls=':', density=True)
-blobs['likelihood_shuffled'].hist(bins=bins, ax=ax,color='limegreen', lw=2, label='blobs', histtype='step', normed=True)
-sky['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=5, ls='-.', density=True)
-sky_norot['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
-plt.legend(fontsize=20, frameon=False, loc='upper left')
+#ax.grid(which='both',axis='both',linewidth=3, color='darkgray')
+bins = np.arange(3000,4500,50)
+#blobs_train['likelihood_shuffled'].hist( bins=bins, ax=ax, color='black', lw=7,label='sersic -train', histtype='step', normed=True, ls='-')
+SDSS['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='SDSS', color='darkorange', lw=7, density=True)
+TNG['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='TNG', color='teal', lw=7, ls='--', density=True)
+TNG50['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='TNG50', color='magenta', lw=7, ls='--', density=True)
+Illustris['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='Illustris', color='firebrick', lw=7, ls=':', density=True)
+blobs['likelihood_shuffled'].hist(bins=bins, ax=ax,color='limegreen', lw=7, label='sersic', histtype='step', normed=True, ls='-.')
+#SDSS_train['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='SDSS - train', color='black', lw=3, density=True)
+#sky['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='sky', color='deeppink', lw=7, ls='-.', density=True)
+#sky_norot['likelihood_shuffled'].hist(bins=bins,ax=ax, histtype='step', label='sky, no rotation', color='gold', lw=2, ls='--', density=True)
+#plt.legend(fontsize=20, frameon=False, loc='upper left')
+plt.legend(fontsize=45, frameon=False, loc='upper left')
+
+plt.tick_params(labelsize=45)
 plt.ylim(0,0.005)
-plt.xlabel('likelihood - blobs model')
-plt.ylabel('#')
+plt.xlabel(r'$log \ p_{\theta_{sersic}}$',fontsize=65)
+plt.ylabel('density', fontsize=55)
 plt.tight_layout()
-plt.savefig('./results/likelihood_plots/likelihood_blobs.png')
+plt.savefig('./results/likelihood_plots/tests/likelihood_blobs_withTNG50_newflux_0.03_0.055_magmatch.png')
 
 
